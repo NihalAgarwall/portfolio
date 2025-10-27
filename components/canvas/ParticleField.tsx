@@ -6,20 +6,25 @@ import * as THREE from 'three';
 
 export default function ParticleField() {
   const points = useRef<THREE.Points>(null);
-  const particlesCount = 3000;
+  
+  const particlesCount = 5000;
   
   const positions = useMemo(() => {
-    const pos = new Float32Array(particlesCount * 3);
-    for (let i = 0; i < particlesCount * 3; i++) {
-      pos[i] = (Math.random() - 0.5) * 15;
+    const positions = new Float32Array(particlesCount * 3);
+    
+    for (let i = 0; i < particlesCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 10;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
     }
-    return pos;
+    
+    return positions;
   }, []);
 
   useFrame((state) => {
     if (points.current) {
-      points.current.rotation.y = state.clock.getElapsedTime() * 0.0008;
-      points.current.rotation.x = state.clock.getElapsedTime() * 0.0003;
+      points.current.rotation.x = state.clock.elapsedTime * 0.05;
+      points.current.rotation.y = state.clock.elapsedTime * 0.075;
     }
   });
 
@@ -31,11 +36,12 @@ export default function ParticleField() {
           count={positions.length / 3}
           array={positions}
           itemSize={3}
+          args={[positions, 3]}
         />
       </bufferGeometry>
       <pointsMaterial
-        size={0.003}
-        color="#D4AF37"
+        size={0.015}
+        color="#00ff88"
         transparent
         opacity={0.6}
         sizeAttenuation
