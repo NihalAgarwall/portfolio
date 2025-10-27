@@ -6,55 +6,52 @@ import * as THREE from 'three';
 
 export default function AdvancedParticles() {
   const points = useRef<THREE.Points>(null);
-  const { mouse } = useThree();
-  
-  const particlesCount = 5000;
-  
-  const [positions, colors, scales] = useMemo(() => {
+  const { viewport } = useThree();
+
+  const particlesCount = 2000;
+
+  const [positions, colors] = useMemo(() => {
     const positions = new Float32Array(particlesCount * 3);
     const colors = new Float32Array(particlesCount * 3);
-    const scales = new Float32Array(particlesCount);
-    
-    const goldColor = new THREE.Color('#D4AF37');
-    const lightColor = new THREE.Color('#F4E4C1');
-    
+
     for (let i = 0; i < particlesCount; i++) {
       const i3 = i * 3;
-      
-      // Spiral galaxy formation
-      const radius = Math.random() * 15;
-      const spinAngle = radius * 0.5;
-      const branchAngle = ((i % 3) / 3) * Math.PI * 2;
-      
-      positions[i3] = Math.cos(branchAngle + spinAngle) * radius + (Math.random() - 0.5) * 2;
-      positions[i3 + 1] = (Math.random() - 0.5) * 3;
-      positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + (Math.random() - 0.5) * 2;
-      
-      // Color gradient
-      const mixedColor = goldColor.clone();
-      mixedColor.lerp(lightColor, Math.random());
-      
-      colors[i3] = mixedColor.r;
-      colors[i3 + 1] = mixedColor.g;
-      colors[i3 + 2] = mixedColor.b;
-      
-      scales[i] = Math.random();
+
+      positions[i3] = (Math.random() - 0.5) * viewport.width * 2;
+      positions[i3 + 1] = (Math.random() - 0.5) * viewport.height * 2;
+      positions[i3 + 2] = (Math.random() - 0.5) * 10;
+
+      const colorValue = Math.random();
+      colors[i3] = colorValue;
+      colors[i3 + 1] = colorValue * 0.5;
+      colors[i3 + 2] = 0;
     }
-    
-    return [positions, colors, scales];
-  }, []);
+
+    return [positions, colors];
+  }, [viewport]);
 
   useFrame((state) => {
-    if (points.current) {
-      const time = state.clock.getElapsedTime();
-      
-      points.current.rotation.y = time * 0.02;
-      points.current.rotation.x = Math.sin(time * 0.1) * 0.1;
-      
-      // Mouse interaction
-      points.current.rotation.y += mouse.x * 0.0001;
-      points.current.rotation.x += mouse.y * 0.0001;
+    if (!points.current) return;
+
+    const time = state.clock.getElapsedTime();
+    const positionArray = points.current.geometry.attributes.position.array as Float32Array;
+
+    for (let i = 0; i < particlesCount; i++) {
+      const i3 = i * 3;
+      const x = positionArray[i3];
+      const y = positionArray[i3 + 1];
+
+      positionArray[i3 + 1] = y - 0.01;
+
+      if (positionArray[i3 + 1] < -viewport.height) {
+        positionArray[i3 + 1] = viewport.height;
+      }
+
+      positionArray[i3] = x + Math.sin(time + i) * 0.001;
     }
+
+    points.current.geometry.attributes.position.needsUpdate = true;
+    points.current.rotation.z = time * 0.05;
   });
 
   return (
@@ -65,27 +62,22 @@ export default function AdvancedParticles() {
           count={particlesCount}
           array={positions}
           itemSize={3}
+          args={[positions, 3]}
         />
         <bufferAttribute
           attach="attributes-color"
           count={particlesCount}
           array={colors}
           itemSize={3}
-        />
-        <bufferAttribute
-          attach="attributes-aScale"
-          count={particlesCount}
-          array={scales}
-          itemSize={1}
+          args={[colors, 3]}
         />
       </bufferGeometry>
       <pointsMaterial
-        size={0.015}
+        size={0.02}
         vertexColors
         transparent
-        opacity={0.8}
+        opacity={0.6}
         sizeAttenuation
-        depthWrite={false}
         blending={THREE.AdditiveBlending}
       />
     </points>
