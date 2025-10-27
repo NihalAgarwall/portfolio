@@ -3,11 +3,8 @@
 import { Canvas } from '@react-three/fiber';
 import FloatingGeometry from './FloatingGeometry';
 import AdvancedParticles from './AdvancedParticles';
-import { useScroll } from './useScroll';
 
 export default function Scene() {
-  const scrollY = useScroll();
-
   return (
     <div className="fixed inset-0 -z-10 pointer-events-none">
       <Canvas 
@@ -16,7 +13,7 @@ export default function Scene() {
       >
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} intensity={1} />
-        <FloatingGeometry scrollY={scrollY} />
+        <FloatingGeometry />
         <AdvancedParticles />
       </Canvas>
     </div>
